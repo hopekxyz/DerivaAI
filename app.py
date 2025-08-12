@@ -7,7 +7,7 @@ import os
 
 # --- INÍCIO DA MODIFICAÇÃO ---
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 
 if not OPENAI_API_KEY:
     st.error("A chave de API da OpenAI não foi encontrada. Por favor, defina a variável de ambiente OPENAI_API_KEY.")
