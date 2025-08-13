@@ -1,156 +1,156 @@
+# --------------------------------------------------------------------------
+# DerivaAI - Professor Particular de Cálculo
+#
+# Fase 1 - MVP Robusto com Banco de Dados
+#
+# Este script representa a aplicação funcional conectada a um banco de 
+# dados PostgreSQL para persistência de dados.
+# --------------------------------------------------------------------------
+
 import streamlit as st
-import sqlite3
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.prompts import ChatPromptTemplate
-import os
+from sqlalchemy.sql import text # Para executar SQL de forma segura
 
-# --- INÍCIO DA MODIFICAÇÃO ---
+# --- 1. CONFIGURAÇÃO INICIAL E CHAVES DE API ---
 
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-
-if not OPENAI_API_KEY:
-    st.error("A chave de API da OpenAI não foi encontrada. Por favor, defina a variável de ambiente OPENAI_API_KEY.")
+# Carrega a chave da API da OpenAI a partir dos "Secrets" do Streamlit
+# Este é o método seguro para usar credenciais em produção.
+try:
+    OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+except KeyError:
+    st.error("A chave de API da OpenAI não foi encontrada. Por favor, configure-a nos Secrets do Streamlit.")
     st.stop()
 
-# --- FIM DA MODIFICAÇÃO ---
+# TODO: Substituir user_id hardcoded por um sistema de autenticação dinâmico no Passo 3.
+user_id = 1 
 
-# Aqui, é uma interface PROTÓTIPO de memória de usuários baseada no id, onde vou usar session_state + propelauth para adicionar.
-user_id = "1"
+# --- 2. CONFIGURAÇÃO DA PÁGINA E ESTILOS ---
 
-# Configuração da página
 st.set_page_config(
     page_title="DerivaAI",
     page_icon="🧠",
     layout="wide"
 )
 
-# Carregar CSS personalizado
-def load_css():
-    with open('style.css', encoding='utf-8') as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+# Função para carregar CSS a partir de um arquivo externo
+def load_css(file_path="style.css"):
+    try:
+        with open(file_path, encoding='utf-8') as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.warning(f"Arquivo de estilo '{file_path}' não encontrado.")
 
-# Inicialmente, eu importo o prompt que será utilizado:
-with open('prompt_revisado.txt', 'r', encoding='utf-8') as f:
-    prompt = f.read().replace("{", "{{").replace("}", "}}")
+# --- 3. LÓGICA DO CHATBOT (LANGCHAIN E OPENAI) ---
 
-# Aqui, importo bibliotecas e inicializo o chat.
+# Carrega o prompt principal do sistema a partir de um arquivo de texto
+def carregar_prompt_sistema(file_path="prompt_revisado.txt"):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            # Substituir chaves para evitar conflito com o f-string do Python
+            return f.read().replace("{", "{{").replace("}", "}}")
+    except FileNotFoundError:
+        st.error(f"Arquivo de prompt '{file_path}' não encontrado. Verifique se ele está no repositório.")
+        st.stop()
+
+# Inicializa o modelo de linguagem (LLM) da OpenAI
 llm = ChatOpenAI(
     temperature=0,
     model="gpt-4o-mini",
-    # --- INÍCIO DA MODIFICAÇÃO ---
     api_key=OPENAI_API_KEY
-    # --- FIM DA MODIFICAÇÃO ---
 )
 
-# Crio o template com memória:
+# Cria o template do prompt que será usado na cadeia
 template = ChatPromptTemplate.from_messages([
     ('placeholder', '{memoria}'),
-    ('system', prompt),
+    ('system', carregar_prompt_sistema()),
     ('human', '{pergunta}')
 ])
+
+# Cria a cadeia de conversação que une o template e o LLM
 chain_memoria = template | llm
 
-# Aqui defino as funções para persistência em banco SQLite:
-def criar_tabela():
-    conn = sqlite3.connect("chat.db")
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS mensagens (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT,
-            tipo TEXT,
-            conteudo TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    conn.commit()
-    conn.close()
+# --- 4. FUNÇÕES DE INTERAÇÃO COM O BANCO DE DADOS (POSTGRESQL) ---
 
 def salvar_mensagem(user_id, tipo, conteudo):
-    conn = sqlite3.connect("chat.db")
-    c = conn.cursor()
-    c.execute("INSERT INTO mensagens (user_id, tipo, conteudo) VALUES (?, ?, ?)", (user_id, tipo, conteudo))
-    conn.commit()
-    conn.close()
+    """
+    Salva uma nova mensagem no banco de dados PostgreSQL.
+    'tipo' pode ser 'user' ou 'ai'.
+    """
+    try:
+        conn = st.connection("postgres", type="sql")
+        with conn.session as s:
+            s.execute(
+                text('INSERT INTO conversas (user_id, sender, message_content) VALUES (:user_id, :sender, :content);'),
+                params=dict(user_id=user_id, sender=tipo, content=conteudo)
+            )
+            s.commit()
+    except Exception as e:
+        st.error(f"Erro ao salvar mensagem: {e}")
 
 def carregar_mensagens(user_id):
-    conn = sqlite3.connect("chat.db")
-    c = conn.cursor()
-    c.execute("SELECT tipo, conteudo FROM mensagens WHERE user_id = ? ORDER BY id", (user_id))
-    mensagens = c.fetchall()
-    conn.close()
-    return mensagens
+    """
+    Carrega o histórico de mensagens de um usuário específico do banco de dados.
+    Retorna uma lista de tuplas (sender, message_content).
+    """
+    try:
+        conn = st.connection("postgres", type="sql")
+        df = conn.query(
+            'SELECT sender, message_content FROM conversas WHERE user_id = :user_id ORDER BY timestamp;',
+            params={"user_id": user_id},
+            ttl=0  # Desativa o cache para sempre ter o histórico mais recente
+        )
+        return [(row.sender, row.message_content) for index, row in df.iterrows()]
+    except Exception as e:
+        st.error(f"Erro ao carregar mensagens: {e}")
+        return []
 
-# A função principal do chatbot
+# --- 5. LÓGICA DA PÁGINA DE CHAT (INTERFACE DO USUÁRIO) ---
+
 def pagina_chat():
-    # Aqui, defino um cabeçalho pro chat
-    st.header("Bem-vindo ao DerivaAI! �")
+    st.header("Bem-vindo ao DerivaAI! 🧠")
 
-    # Aqui, crio a tabela no banco se ainda não existir
-    criar_tabela()
-
-    # E aqui, eu defino como a memória vai funcionar: Vai resumir o histórico de conversas, para ter o tamanho de até 1000 tokens.
+    # Inicializa a memória da conversa para a sessão atual
     memoria = ConversationSummaryBufferMemory(
         llm=llm,
         max_token_limit=1000,
         return_messages=True
     )
 
-    # Aqui é pra persistir com as mensagens já digitadas.
+    # Carrega o histórico de mensagens do banco de dados e exibe na tela
     mensagens_salvas = carregar_mensagens(user_id)
     for tipo, conteudo in mensagens_salvas:
+        # Adiciona a mensagem à memória do LangChain para manter o contexto
         if tipo == "user":
-            # Mensagem do usuário à direita
-            st.markdown(f"""
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
-                <div style="background: #1E3A8A; color: white; padding: 12px 20px; border-radius: 16px 16px 0 16px; max-width: 70%; word-break: break-word; box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);">
-                    {conteudo}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
             memoria.chat_memory.add_user_message(conteudo)
         elif tipo == "ai":
-            # Mensagem do bot à esquerda
-            st.markdown(f"""
-            <div style="display: flex; justify-content: flex-start; margin-bottom: 1rem;">
-                <div style="background: transparent; color: white; padding: 12px 20px; border-radius: 16px 16px 16px 0; max-width: 70%; word-break: break-word;">
-                    {conteudo}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
             memoria.chat_memory.add_ai_message(conteudo)
+        
+        # Exibe a mensagem na interface do usuário
+        with st.chat_message(tipo):
+            st.markdown(conteudo)
 
-    # Aqui, o campo de entrada do usuário
-    prompt = st.chat_input("Como posso te ajudar?")
-    if prompt:
-        # Mostro a mensagem do usuário na janela (à direita):
-        st.markdown(f"""
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
-            <div style="background: #1E3A8A; color: white; padding: 12px 20px; border-radius: 16px 16px 0 16px; max-width: 70%; word-break: break-word; box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);">
-                {prompt}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        salvar_mensagem(user_id, "user", prompt)
-        memoria.chat_memory.add_user_message(prompt)
+    # Campo de entrada de texto do usuário
+    prompt_usuario = st.chat_input("Como posso te ajudar com Cálculo?")
+    if prompt_usuario:
+        # Salva e exibe a mensagem do usuário
+        salvar_mensagem(user_id, "user", prompt_usuario)
+        with st.chat_message("user"):
+            st.markdown(prompt_usuario)
 
-        # E aqui, escrevo em tempo real na janela também (à esquerda):
+        # Processa a pergunta e obtém a resposta da IA
         with st.spinner("DerivaAI está pensando..."):
-            resposta = chain_memoria.invoke({'memoria': memoria.buffer, 'pergunta': prompt})
+            resposta = chain_memoria.invoke({'memoria': memoria.buffer, 'pergunta': prompt_usuario})
             resposta_texto = resposta.content
-            
-            st.markdown(f"""
-            <div style="display: flex; justify-content: flex-start; margin-bottom: 1rem;">
-                <div style="background: transparent; color: white; padding: 12px 20px; border-radius: 16px 16px 16px 0; max-width: 70%; word-break: break-word;">
-                    {resposta_texto}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            salvar_mensagem(user_id, "ai", resposta_texto)
-            memoria.chat_memory.add_ai_message(resposta_texto)
+        
+        # Salva e exibe a resposta da IA
+        salvar_mensagem(user_id, "ai", resposta_texto)
+        with st.chat_message("ai"):
+            st.markdown(resposta_texto)
 
-# Executa a função principal
+# --- FUNÇÃO PRINCIPAL ---
+
 def main():
     load_css()
     pagina_chat()
