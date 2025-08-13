@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DerivaAI - Seu Tutor de Cálculo Inteligente</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-brand">
+                <i class="fas fa-calculator"></i>
+                <span>DerivaAI</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link">Início</a></li>
+                <li><a href="#funcionalidades" class="nav-link">Funcionalidades</a></li>
+                <li><a href="#chat" class="nav-link">Chat</a></li>
+                <li><a href="#sobre" class="nav-link">Sobre</a></li>
+                <li><a href="#contato" class="nav-link">Contato</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Seção Home -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Aprenda Cálculo com 
+                    <span class="highlight">DerivaAI</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Seu tutor inteligente que adapta o conteúdo ao seu nível, 
+                    explica conceitos complexos de forma simples e te ajuda a 
+                    dominar o cálculo universitário.
+                </p>
+                <div class="hero-benefits">
+                    <div class="benefit">
+                        <i class="fas fa-brain"></i>
+                        <span>Explicações Adaptativas</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Diagnóstico de Nível</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Resolução de Problemas</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="scrollToSection('chat')">
+                    Começar a Estudar
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div class="hero-image">
+                <div class="math-formula">
+                    <span>∫ f(x) dx</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção Funcionalidades -->
+    <section id="funcionalidades" class="features">
+        <div class="container">
+            <h2 class="section-title">Funcionalidades Principais</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3>Explicações Adaptativas</h3>
+                    <p>O DerivaAI analisa seu nível de conhecimento e adapta as explicações para que você entenda perfeitamente cada conceito.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Diagnóstico Inteligente</h3>
+                    <p>Identificamos suas dificuldades específicas e criamos um plano de estudos personalizado para você.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h3>Resolução de Problemas</h3>
+                    <p>Resolva exercícios passo a passo com explicações detalhadas e dicas para melhorar sua técnica.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Chat Interativo</h3>
+                    <p>Faça perguntas em linguagem natural e receba respostas com fórmulas matemáticas formatadas.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3>Feedback Contínuo</h3>
+                    <p>Acompanhe seu progresso com relatórios detalhados e sugestões de melhoria.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <h3>Metodologia Feynman</h3>
+                    <p>Explicações baseadas na técnica de Richard Feynman: conceitos complexos explicados de forma simples.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção Chat -->
+    <section id="chat" class="chat-section">
+        <div class="container">
+            <h2 class="section-title">Converse com o DerivaAI</h2>
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <p>Olá! Sou o DerivaAI, seu tutor de cálculo. Como posso te ajudar hoje? Você pode me perguntar sobre:</p>
+                            <ul>
+                                <li>• Conceitos de cálculo diferencial e integral</li>
+                                <li>• Resolução de exercícios específicos</li>
+                                <li>• Explicações de fórmulas e teoremas</li>
+                                <li>• Dúvidas sobre derivadas, integrais, limites</li>
+                            </ul>
+                            <p>Digite sua pergunta abaixo! 📚</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <form id="chatForm" class="chat-form">
+                        <input 
+                            type="text" 
+                            id="chatInput" 
+                            placeholder="Digite sua pergunta sobre cálculo..."
+                            class="chat-input"
+                        >
+                        <button type="submit" class="chat-send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção Sobre -->
+    <section id="sobre" class="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 class="section-title">Sobre o DerivaAI</h2>
+                    <p class="about-description">
+                        O DerivaAI nasceu da missão de democratizar o acesso ao conhecimento em cálculo, 
+                        transformando um dos assuntos mais desafiadores da matemática universitária em uma 
+                        experiência de aprendizado acessível e motivadora.
+                    </p>
+                    <div class="about-features">
+                        <div class="about-feature">
+                            <h3><i class="fas fa-bullseye"></i> Nossa Missão</h3>
+                            <p>Ser o tutor particular que todo estudante de cálculo merece ter, oferecendo 
+                            explicações claras, adaptadas e motivadoras.</p>
+                        </div>
+                        <div class="about-feature">
+                            <h3><i class="fas fa-lightbulb"></i> Metodologia</h3>
+                            <p>Baseada na Taxonomia Revisada de Bloom e inspirada na técnica de explicação 
+                            de Richard Feynman, focamos em compreensão profunda.</p>
+                        </div>
+                        <div class="about-feature">
+                            <h3><i class="fas fa-heart"></i> Abordagem Pedagógica</h3>
+                            <p>Tom empático e divertido, transformando conceitos complexos em explicações 
+                            simples e memoráveis.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-stats">
+                    <div class="stat">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Personalizado</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Disponível</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Paciência</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção Contato -->
+    <section id="contato" class="contact">
+        <div class="container">
+            <h2 class="section-title">Entre em Contato</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h3>Feedback, Dúvidas e Sugestões</h3>
+                    <p>Queremos ouvir você! Sua opinião é fundamental para melhorarmos o DerivaAI.</p>
+                    <div class="contact-methods">
+                        <div class="contact-method">
+                            <i class="fas fa-envelope"></i>
+                            <span>contato@derivaai.com</span>
+                        </div>
+                        <div class="contact-method">
+                            <i class="fas fa-comments"></i>
+                            <span>Chat em tempo real</span>
+                        </div>
+                        <div class="contact-method">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Sugestões de melhorias</span>
+                        </div>
+                    </div>
+                </div>
+                <form class="contact-form" id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Nome</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Assunto</label>
+                        <select id="subject" name="subject" required>
+                            <option value="">Selecione um assunto</option>
+                            <option value="feedback">Feedback</option>
+                            <option value="duvida">Dúvida</option>
+                            <option value="sugestao">Sugestão</option>
+                            <option value="bug">Reportar Bug</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Mensagem</label>
+                        <textarea id="message" name="message" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        Enviar Mensagem
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="fas fa-calculator"></i>
+                    <span>DerivaAI</span>
+                </div>
+                <p class="footer-description">
+                    Transformando o aprendizado de cálculo em uma experiência 
+                    acessível, motivadora e eficaz.
+                </p>
+                <div class="footer-links">
+                    <a href="#home">Início</a>
+                    <a href="#funcionalidades">Funcionalidades</a>
+                    <a href="#chat">Chat</a>
+                    <a href="#sobre">Sobre</a>
+                    <a href="#contato">Contato</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 DerivaAI. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 

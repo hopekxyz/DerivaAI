@@ -1,0 +1,21 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: derivaai-service
+spec:
+  template:
+    metadata:
+      annotations:
+        # A anotação que vincula o serviço ao conector VPC
+        run.googleapis.com/vpc-access-connector: "derivaai-connector"
+        # A anotação que permite todo o tráfego de saída através do conector
+        run.googleapis.com/vpc-access-egress: "all-traffic"
+    spec:
+      containers:
+      - image: gcr.io/deriva-ai/derivaai-app:latest
+        env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: OPENAI_API_KEY
+              key: latest

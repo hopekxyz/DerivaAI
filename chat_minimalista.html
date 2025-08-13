@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DerivaAI - Chat Minimalista</title>
+    <link rel="stylesheet" href="chat_minimalista.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="main-chat-container">
+        <!-- Header com logo -->
+        <header class="chat-header">
+            <img src="logo_deriva.png" alt="Logo DerivaAI" class="logo-deriva">
+        </header>
+        <!-- Área de Mensagens -->
+        <div class="messages-container" id="messagesContainer">
+            <div class="message ai-message">
+                <div class="message-avatar">
+                    <span class="derivative-symbol">∂</span>
+                </div>
+                <div class="message-content">
+                    <p>Olá! Sou o DerivaAI, seu tutor de cálculo. Como posso te ajudar hoje?</p>
+                </div>
+            </div>
+        </div>
+        <!-- Barra de Input -->
+        <div class="input-container">
+            <form id="chatForm" class="input-form">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="chatInput" 
+                        placeholder="Digite sua pergunta sobre cálculo..."
+                        class="chat-input"
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="chat_minimalista.js"></script>
+</body>
+</html> 

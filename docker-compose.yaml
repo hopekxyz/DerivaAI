@@ -1,0 +1,38 @@
+# Use a versão 3 do Docker Compose para garantir a compatibilidade
+version: '3.8'
+
+# Defina os serviços (contêineres) que sua aplicação precisa
+services:
+  # O serviço do nosso aplicativo Streamlit
+  app:
+    build: . # Construa a imagem a partir do Dockerfile no diretório atual
+    ports:
+      - "8501:8080" # Mapeie a porta 8501 do host para a 8080 do contêiner
+    environment:
+      # Variáveis de ambiente para a conexão com o banco de dados.
+      # O nome do host agora é "postgres" (o nome do serviço do banco de dados).
+      - DB_HOST=postgres
+      - DB_NAME=derivaai_db
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - OPENAI_API_KEY=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
+    depends_on:
+      - postgres # Garanta que o banco de dados inicie antes do aplicativo
+
+  # O serviço do nosso banco de dados PostgreSQL
+  postgres:
+    image: postgres:13 # Use a imagem oficial do PostgreSQL (versão 13 é estável)
+    environment:
+      - POSTGRES_DB=derivaai_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    # Remova a porta se você não precisar acessar o banco de dados do seu host
+    # ports:
+    #   - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+# Defina os volumes para persistência de dados
+volumes:
+  postgres_data:
+

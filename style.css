@@ -1,0 +1,166 @@
+body, .stApp {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%) !important;
+    color: #ffffff !important;
+}
+
+/* Container principal do chat */
+.main .block-container {
+    background: transparent !important;
+    padding-top: 2rem !important;
+}
+
+/* MENSAGEM DO USUÁRIO – direita com balão azul adaptável */
+div[data-testid="stChatMessage"][data-testid*="user"] {
+    display: flex !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+    margin-bottom: 1rem !important;
+}
+
+div[data-testid="stChatMessage"][data-testid*="user"] pre {
+    background-color: #1E3A8A !important;
+    color: white !important;
+    border-radius: 18px !important;
+    padding: 12px 16px !important;
+    max-width: 70% !important;
+    width: fit-content !important;
+    display: inline-block !important;
+    white-space: pre-wrap !important;
+    margin-left: auto !important;
+    word-wrap: break-word !important;
+    box-shadow: none !important;
+}
+
+/* MENSAGEM DO ASSISTENTE – esquerda, branca e limpa */
+div[data-testid="stChatMessage"][data-testid*="assistant"] {
+    display: flex !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    margin-bottom: 1rem !important;
+}
+
+div[data-testid="stChatMessage"][data-testid*="assistant"] pre {
+    background-color: transparent !important;
+    color: #ffffff !important;
+    border-radius: 18px !important;
+    padding: 12px 16px !important;
+    max-width: 70% !important;
+    width: fit-content !important;
+    display: inline-block !important;
+    white-space: pre-wrap !important;
+    margin-right: auto !important;
+    word-wrap: break-word !important;
+    box-shadow: none !important;
+}
+
+/* REMOVER AVATARES */
+div[data-testid="stChatMessage"] img,
+div[data-testid="stChatMessage"] > div:first-child,
+.stChatMessage > div:first-child,
+.stChatMessage .st-emotion-cache-1c7y2kd,
+.stChatMessage .st-emotion-cache-janfpx,
+.stChatMessage .st-emotion-cache-1tpl0xr {
+    display: none !important;
+}
+
+/* CAMPO DE ENTRADA DO CHAT */
+.stChatInput {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.stChatInput > div {
+    background-color: #1E3A8A !important;
+    border-radius: 25px !important;
+    padding: 4px !important;
+}
+
+.stChatInput input {
+    background-color: transparent !important;
+    color: white !important;
+    border: none !important;
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+}
+
+.stChatInput input::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.stChatInput button {
+    background-color: transparent !important;
+    border: none !important;
+    color: white !important;
+    padding: 8px !important;
+}
+
+.stChatInput button:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* CABEÇALHO */
+.stHeader {
+    background-color: transparent !important;
+    color: #ffffff !important;
+}
+h1 {
+    color: #ffffff !important;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+/* OCULTAR MENU STREAMLIT */
+#MainMenu, footer, header {
+    visibility: hidden;
+}
+
+/* AJUSTES GERAIS */
+.element-container {
+    margin-bottom: 0.5rem !important;
+}
+.stChatMessage {
+    padding: 0 !important;
+    margin: 0.5rem 0 !important;
+}
+.stChatMessage > div {
+    gap: 0 !important;
+}
+
+/* Balão azul adaptável para mensagem do usuário */
+div[data-testid="stChatMessage"][data-testid*="user"] > div:nth-child(2) {
+    background: #1E3A8A !important;
+    color: #fff !important;
+    align-self: flex-end !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    display: inline-block !important;
+    max-width: 70%;
+    border-radius: 16px 16px 0 16px;
+    padding: 12px 20px;
+    word-break: break-word;
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);
+    width: fit-content !important;
+}
+
+/* Balão do assistente transparente */
+div[data-testid="stChatMessage"][data-testid*="assistant"] > div:nth-child(2) {
+    background: transparent !important;
+    color: #fff !important;
+}
+
+.chat-row {
+    display:flex
+}
