@@ -25,7 +25,7 @@ def get_user_id_by_email(email: str):
     result = conn.query(query, params={"email": email})
     # .iloc[0] pega a primeira linha, ['user_id'] pega o valor da coluna
     if not result.empty:
-        return result.iloc[0]['user_id']
+        return int(result.iloc[0]['user_id'])
     return None
     
 # --- ESTRUTURA PRINCIPAL DO APP ---
@@ -57,15 +57,6 @@ def main():
         # A biblioteca salva o login (ex: 'jsmith') em st.session_state["username"]
         user_login = st.session_state["username"]
         user_email = config['credentials']['usernames'][user_login]['email']
-        # --- INÍCIO DAS LINHAS DE DEPURAÇÃO ---
-        st.write("--- MODO DE DEPURAÇÃO ATIVADO ---")
-        st.write(f"Procurando pelo email: **{user_email}**")
-        conn = st.connection("postgres", type="sql")
-        todos_usuarios = conn.query('SELECT user_id, email, name FROM usuarios;')
-        st.write("Usuários encontrados no banco de dados:")
-        st.dataframe(todos_usuarios)
-        st.write("--- FIM DO MODO DE DEPURAÇÃO ---")
-    # --- FIM DAS LINHAS DE DEPURAÇÃO ---
         user_id = get_user_id_by_email(user_email)
         
         if user_id:
@@ -108,6 +99,7 @@ st.set_page_config(
     page_icon="🧠",
     layout="wide"
 )
+
 
 # Função para carregar CSS a partir de um arquivo externo
 def load_css(file_path="style.css"):
