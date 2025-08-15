@@ -169,7 +169,7 @@ def carregar_mensagens(user_id):
 
 # --- 5. LÓGICA DA PÁGINA DE CHAT (INTERFACE DO USUÁRIO) ---
 
-def pagina_chat():
+def pagina_chat(user_id):
     st.header("Bem-vindo ao DerivaAI! 🧠")
 
     # Inicializa a memória da conversa para a sessão atual
@@ -211,10 +211,6 @@ def pagina_chat():
             st.markdown(resposta_texto)
 
 # --- FUNÇÃO PRINCIPAL ---
-
-def main():
-    load_css()
-    pagina_chat()
 
 if __name__ == "__main__":
     main()
