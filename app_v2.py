@@ -7,8 +7,13 @@
 # dados PostgreSQL para persistência de dados.
 # --------------------------------------------------------------------------
 
-# No topo do seu app.py, adicione os novos imports
+
 import streamlit_authenticator as stauth
+import streamlit as st
+from langchain_openai import ChatOpenAI
+from langchain.memory import ConversationSummaryBufferMemory
+from langchain.prompts import ChatPromptTemplate
+from sqlalchemy.sql import text
 
 # ... (seus outros imports) ...
 
@@ -51,7 +56,15 @@ def main():
         # A biblioteca salva o login (ex: 'jsmith') em st.session_state["username"]
         user_login = st.session_state["username"]
         user_email = config['credentials']['usernames'][user_login]['email']
-        
+        # --- INÍCIO DAS LINHAS DE DEPURAÇÃO ---
+        st.write("--- MODO DE DEPURAÇÃO ATIVADO ---")
+        st.write(f"Procurando pelo email: **{user_email}**")
+        conn = st.connection("postgres", type="sql")
+        todos_usuarios = conn.query('SELECT user_id, email, name FROM usuarios;')
+        st.write("Usuários encontrados no banco de dados:")
+        st.dataframe(todos_usuarios)
+        st.write("--- FIM DO MODO DE DEPURAÇÃO ---")
+    # --- FIM DAS LINHAS DE DEPURAÇÃO ---
         user_id = get_user_id_by_email(user_email)
         
         if user_id:
