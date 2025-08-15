@@ -21,7 +21,8 @@ from sqlalchemy.sql import text
 def get_user_id_by_email(email: str):
     """Busca o user_id no banco de dados a partir de um email."""
     conn = st.connection("postgres", type="sql")
-    result = conn.query('SELECT user_id FROM usuarios WHERE email = :email;', params={"email": email})
+    query = 'SELECT user_id FROM usuarios WHERE TRIM(LOWER(email)) = LOWER(:email);'
+    result = conn.query(query, params={"email": email})
     # .iloc[0] pega a primeira linha, ['user_id'] pega o valor da coluna
     if not result.empty:
         return result.iloc[0]['user_id']
