@@ -7,15 +7,72 @@
 # dados PostgreSQL para persistência de dados.
 # --------------------------------------------------------------------------
 
+# No topo do seu app.py, adicione os novos imports
+import streamlit_authenticator as stauth
+
+# ... (seus outros imports) ...
+
+# --- FUNÇÃO AUXILIAR PARA BUSCAR USER_ID ---
+def get_user_id_by_email(email: str):
+    """Busca o user_id no banco de dados a partir de um email."""
+    conn = st.connection("postgres", type="sql")
+    result = conn.query('SELECT user_id FROM usuarios WHERE email = :email;', params={"email": email})
+    # .iloc[0] pega a primeira linha, ['user_id'] pega o valor da coluna
+    if not result.empty:
+        return result.iloc[0]['user_id']
+    return None
+    
+# --- ESTRUTURA PRINCIPAL DO APP ---
+def main():
+    load_css() # Sua função para carregar o CSS
+
+    # Carrega a configuração do autenticador a partir dos secrets
+    config = st.secrets
+    
+    authenticator = stauth.Authenticate(
+        config['credentials'].to_dict(), # Converte a seção de credenciais para dicionário
+        config['cookie']['name'],
+        config['cookie']['key'],
+        config['cookie']['expiry_days']
+    )
+
+    # Renderiza o formulário de login na tela
+    authenticator.login()
+
+    # --- LÓGICA DE CONTROLE DE ACESSO ---
+
+    if st.session_state["authentication_status"]:
+        # --- USUÁRIO LOGADO (ASSINANTE) ---
+        with st.sidebar:
+             st.write(f'Bem-vindo *{st.session_state["name"]}*!')
+             authenticator.logout() # Mostra o botão de logout na sidebar
+
+        # Busca o ID do usuário real no nosso banco de dados
+        # A biblioteca salva o login (ex: 'jsmith') em st.session_state["username"]
+        user_login = st.session_state["username"]
+        user_email = config['credentials']['usernames'][user_login]['email']
+        
+        user_id = get_user_id_by_email(user_email)
+        
+        if user_id:
+            pagina_chat(user_id) # Inicia o chat com o ID do usuário correto
+        else:
+            st.error("Erro: Usuário autenticado não encontrado em nosso banco de dados. Contate o suporte.")
+
+    elif st.session_state["authentication_status"] is False:
+        # --- FALHA NO LOGIN ---
+        st.error('Usuário ou senha incorretos.')
+
+    elif st.session_state["authentication_status"] is None:
+        # --- USUÁRIO NÃO LOGADO (VISITANTE) ---
+        st.info("👋 Bem-vindo ao DerivaAI! Faça o login para acessar seu histórico de conversas.")
+        st.warning("No momento, a funcionalidade para visitantes está em desenvolvimento. Por favor, utilize uma das contas de teste para acessar.")
+        # Futuramente, aqui entrará a lógica do chat limitado para visitantes.
+
 import streamlit as st
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.prompts import ChatPromptTemplate
-<<<<<<< HEAD:login.py
-
-# Aqui, é uma interface PROTÓTIPO de memória de usuários baseada no id, onde vou usar session_state + propelauth para adicionar.
-config = {'configurable': {'session_id' : 'ivo'}}
-=======
 from sqlalchemy.sql import text # Para executar SQL de forma segura
 
 # --- 1. CONFIGURAÇÃO INICIAL E CHAVES DE API ---
@@ -29,10 +86,8 @@ except KeyError:
     st.stop()
 
 # TODO: Substituir user_id hardcoded por um sistema de autenticação dinâmico no Passo 3.
-user_id = 1 
 
 # --- 2. CONFIGURAÇÃO DA PÁGINA E ESTILOS ---
->>>>>>> a7a57aaa949c92903f4b7a843d8175acab7f877a:app.py
 
 st.set_page_config(
     page_title="DerivaAI",
@@ -40,12 +95,6 @@ st.set_page_config(
     layout="wide"
 )
 
-<<<<<<< HEAD:login.py
-# Carregar CSS personalizado
-def load_css():
-    with open('style.css') as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-=======
 # Função para carregar CSS a partir de um arquivo externo
 def load_css(file_path="style.css"):
     try:
@@ -53,7 +102,6 @@ def load_css(file_path="style.css"):
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     except FileNotFoundError:
         st.warning(f"Arquivo de estilo '{file_path}' não encontrado.")
->>>>>>> a7a57aaa949c92903f4b7a843d8175acab7f877a:app.py
 
 # --- 3. LÓGICA DO CHATBOT (LANGCHAIN E OPENAI) ---
 
@@ -71,11 +119,7 @@ def carregar_prompt_sistema(file_path="prompt_revisado.txt"):
 llm = ChatOpenAI(
     temperature=0,
     model="gpt-4o-mini",
-<<<<<<< HEAD:login.py
-    api_key="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"
-=======
     api_key=OPENAI_API_KEY
->>>>>>> a7a57aaa949c92903f4b7a843d8175acab7f877a:app.py
 )
 
 # Cria o template do prompt que será usado na cadeia
@@ -88,37 +132,6 @@ template = ChatPromptTemplate.from_messages([
 # Cria a cadeia de conversação que une o template e o LLM
 chain_memoria = template | llm
 
-<<<<<<< HEAD:login.py
-# Aqui defino as funções para persistência em banco SQLite:
-def criar_tabela():
-    conn = sqlite3.connect("chat.db")
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS mensagens (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tipo TEXT,
-            conteudo TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-def salvar_mensagem(tipo, conteudo):
-    conn = sqlite3.connect("chat.db")
-    c = conn.cursor()
-    c.execute("INSERT INTO mensagens (tipo, conteudo) VALUES (?, ?)", (tipo, conteudo))
-    conn.commit()
-    conn.close()
-
-def carregar_mensagens():
-    conn = sqlite3.connect("chat.db")
-    c = conn.cursor()
-    c.execute("SELECT tipo, conteudo FROM mensagens ORDER BY id")
-    mensagens = c.fetchall()
-    conn.close()
-    return mensagens
-=======
 # --- 4. FUNÇÕES DE INTERAÇÃO COM O BANCO DE DADOS (POSTGRESQL) ---
 
 def salvar_mensagem(user_id, tipo, conteudo):
@@ -155,13 +168,8 @@ def carregar_mensagens(user_id):
         return []
 
 # --- 5. LÓGICA DA PÁGINA DE CHAT (INTERFACE DO USUÁRIO) ---
->>>>>>> a7a57aaa949c92903f4b7a843d8175acab7f877a:app.py
 
 def pagina_chat():
-<<<<<<< HEAD:login.py
-    # Aqui, defino um cabeçalho pro chat
-=======
->>>>>>> a7a57aaa949c92903f4b7a843d8175acab7f877a:app.py
     st.header("Bem-vindo ao DerivaAI! 🧠")
 
     # Inicializa a memória da conversa para a sessão atual
@@ -171,13 +179,8 @@ def pagina_chat():
         return_messages=True
     )
 
-<<<<<<< HEAD:login.py
-    # Aqui é pra persistir com as mensagens já digitadas.
-    mensagens_salvas = carregar_mensagens()
-=======
     # Carrega o histórico de mensagens do banco de dados e exibe na tela
     mensagens_salvas = carregar_mensagens(user_id)
->>>>>>> a7a57aaa949c92903f4b7a843d8175acab7f877a:app.py
     for tipo, conteudo in mensagens_salvas:
         # Adiciona a mensagem à memória do LangChain para manter o contexto
         if tipo == "user":
@@ -189,21 +192,6 @@ def pagina_chat():
         with st.chat_message(tipo):
             st.markdown(conteudo)
 
-<<<<<<< HEAD:login.py
-    # Aqui, o campo de entrada do usuário
-    prompt = st.chat_input("Como posso te ajudar?")
-    if prompt:
-        # Mostro a mensagem do usuário na janela (à direita):
-        st.markdown(f"""
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
-            <div style="background: #1E3A8A; color: white; padding: 12px 20px; border-radius: 16px 16px 0 16px; max-width: 70%; word-break: break-word; box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);">
-                {prompt}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        salvar_mensagem("user", prompt)
-        memoria.chat_memory.add_user_message(prompt)
-=======
     # Campo de entrada de texto do usuário
     prompt_usuario = st.chat_input("Como posso te ajudar com Cálculo?")
     if prompt_usuario:
@@ -211,24 +199,9 @@ def pagina_chat():
         salvar_mensagem(user_id, "user", prompt_usuario)
         with st.chat_message("user"):
             st.markdown(prompt_usuario)
->>>>>>> a7a57aaa949c92903f4b7a843d8175acab7f877a:app.py
 
         # Processa a pergunta e obtém a resposta da IA
         with st.spinner("DerivaAI está pensando..."):
-<<<<<<< HEAD:login.py
-            resposta = chain_memoria.invoke({'memoria': memoria.buffer, 'pergunta': prompt}, config = config)
-            resposta_texto = resposta.content
-            
-            st.markdown(f"""
-            <div style="display: flex; justify-content: flex-start; margin-bottom: 1rem;">
-                <div style="background: transparent; color: white; padding: 12px 20px; border-radius: 16px 16px 16px 0; max-width: 70%; word-break: break-word;">
-                    {resposta_texto}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            salvar_mensagem("ai", resposta_texto)
-            memoria.chat_memory.add_ai_message(resposta_texto)
-=======
             resposta = chain_memoria.invoke({'memoria': memoria.buffer, 'pergunta': prompt_usuario})
             resposta_texto = resposta.content
         
@@ -238,7 +211,6 @@ def pagina_chat():
             st.markdown(resposta_texto)
 
 # --- FUNÇÃO PRINCIPAL ---
->>>>>>> a7a57aaa949c92903f4b7a843d8175acab7f877a:app.py
 
 def main():
     load_css()
