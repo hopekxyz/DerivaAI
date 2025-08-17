@@ -41,15 +41,15 @@ def main():
 
         # Tem necessidade desse else aqui? Tem como o usuÃ¡rio logar sem ele estar na base de dados?
         else:
-            st.error("Erro: UsuÃ¡rio autenticado nÃ£o encontrado em nosso banco de dados. Contate o suporte.")
+            st.error("Erro: Usuário autenticado não encontrado em nosso banco de dados. Contate o suporte.")
 
     elif st.session_state["authentication_status"] is False:
-        st.error('UsuÃ¡rio ou senha incorretos.')
+        st.error('Usuário ou senha incorretos.')
 
     elif st.session_state["authentication_status"] is None:
         # --- Caso de ser visitante ---
-        st.info("ðŸ‘‹ Bem-vindo ao DerivaAI! FaÃ§a o login para acessar seu histÃ³rico de conversas.")
-        st.warning("No momento, a funcionalidade para visitantes estÃ¡ em desenvolvimento. Por favor, utilize uma das contas de teste para acessar.")
+        st.info("🧠 ‹ Bem-vindo ao DerivaAI! Faça o login para acessar seu histórico de conversas.")
+        st.warning("No momento, a funcionalidade para visitantes está em desenvolvimento. Por favor, utilize uma das contas de teste para acessar.")
         # Futuramente, aqui entrarÃ¡ a lÃ³gica do chat limitado para visitantes.
 
 
@@ -75,7 +75,7 @@ except KeyError:
 
 st.set_page_config(
     page_title="DerivaAI",
-    page_icon="ðŸ§ ",
+    page_icon="🧠",
     layout="wide"
 )
 
@@ -96,7 +96,7 @@ def carregar_prompt_sistema(file_path="prompt_revisado.txt"):
             # Substituir chaves para evitar conflito com o f-string do Python
             return f.read().replace("{", "{{").replace("}", "}}")
     except FileNotFoundError:
-        st.error(f"Arquivo de prompt '{file_path}' nÃ£o encontrado. Verifique se ele estÃ¡ no repositÃ³rio.")
+        st.error(f"Arquivo de prompt '{file_path}' não encontrado. Verifique se ele está no repositório.")
         st.stop()
 
 # Inicializa o modelo de linguagem (LLM) da OpenAI
@@ -134,7 +134,7 @@ def salvar_mensagem(user_id, tipo, conteudo):
 
 def carregar_mensagens(user_id):
     """
-    Carrega o histÃ³rico de mensagens de um usuÃ¡rio especÃ­fico do banco de dados.
+    Carrega o histórico de mensagens de um usuário especí­fico do banco de dados.
     Retorna uma lista de tuplas (sender, message_content).
     """
     try:
@@ -152,7 +152,7 @@ def carregar_mensagens(user_id):
 # --- 5. LÃ“GICA DA PÃGINA DE CHAT (INTERFACE DO USUÃRIO) ---
 
 def pagina_chat(user_id):
-    st.header("Bem-vindo ao DerivaAI! ðŸ§ ")
+    st.header("Bem-vindo ao DerivaAI! 🧠 ")
 
     # Inicializa a memÃ³ria da conversa para a sessÃ£o atual
     # Utilizo o SummaryBuffer pra economizar memÃ³ria e nÃ£o perder contexto a longo-prazo: o melhor dos dois mundos.
@@ -177,7 +177,7 @@ def pagina_chat(user_id):
             st.markdown(conteudo)
 
     # Campo de entrada de texto do usuÃ¡rio
-    prompt_usuario = st.chat_input("Como posso te ajudar com CÃ¡lculo?")
+    prompt_usuario = st.chat_input("Como posso te ajudar com Cálculo?")
     if prompt_usuario:
         # Salva e exibe a mensagem do usuÃ¡rio
         # EstÃ¡ tendo um delay do usuÃ¡rio mandar a mensagem e aparecer na tela. DÃ¡ uma olhada aqui depois pra ver o que pode ser.
