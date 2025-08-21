@@ -69,15 +69,20 @@ def create_user_in_db(email, name, plain_password):
     """Cria um novo usuário no banco, com senha hasheada."""
     conn = st.connection("postgres", type="sql")
     
-    existing_user = conn.query('SELECT user_id FROM usuarios WHERE email = :email;', params={"email": email})
+    # 1. Verifica se o email já existe (VERSÃO CORRIGIDA E ROBUSTA)
+    query = 'SELECT user_id FROM usuarios WHERE TRIM(LOWER(email)) = LOWER(:email);'
+    existing_user = conn.query(query, params={"email": email})
+    
     if not existing_user.empty:
-        return False
+        return False # Usuário já existe, a função para aqui.
 
+    # 2. Hasheia a senha
     hashed_password = stauth.Hasher().hash(plain_password)
     
+    # 3. Insere o novo usuário no banco
     with conn.session as s:
         s.execute(
-            text('INSERT INTO usuarios (email, name, password_hash, account_type) VALUES (:email, :name, :password, :type);'),
+            text('INSERT INTO usuarios (email, name, password_hash, account_type, trial_ends_at) VALUES (:email, :name, :password, :type, NOW() + INTERVAL \'1 month\');'),
             params=dict(email=email, name=name, password=hashed_password, type='assinante')
         )
         s.commit()
