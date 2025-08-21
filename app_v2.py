@@ -7,51 +7,81 @@ from langchain.prompts import ChatPromptTemplate
 from sqlalchemy.sql import text
 
 def main():
-    # Carrego o CSS do chat (formataÃ§Ã£o front-end).
     load_css()
 
-    # Carrega a configuraÃ§Ã£o do autenticador a partir dos secrets, jÃ¡ que estamos autenticando o usuÃ¡rio usando o streamlit_authenticator.
-    config = st.secrets
+    # --- ESCOLHA ENTRE LOGIN E REGISTRO ---
+    choice = st.selectbox("Escolha uma opção:", ["Login", "Registrar"])
     
-    authenticator = stauth.Authenticate(
-        config['credentials'].to_dict(), # Converte a seÃ§Ã£o de credenciais para dicionÃ¡rio
-        config['cookie']['name'],
-        config['cookie']['key'],
-        config['cookie']['expiry_days']
-    )
+    config = st.secrets
 
-    # Renderiza o formulÃ¡rio de login na tela
-    authenticator.login()
+    if choice == "Login":
+        authenticator = stauth.Authenticate(
+            config['credentials'].to_dict(),
+            config['cookie']['name'],
+            config['cookie']['key'],
+            config['cookie']['expiry_days']
+        )
+        authenticator.login()
 
-    # --- Controle de acesso. Se ele estiver autenticado, authentication_status retornarÃ¡ True. Se nÃ£o tiver (visitante), retornarÃ¡ None. Caso o login dÃª errado, retorna False ---
+        if st.session_state["authentication_status"]:
+            with st.sidebar:
+                 st.write(f'Bem-vindo *{st.session_state["name"]}*!')
+                 authenticator.logout()
 
-    if st.session_state["authentication_status"]:
-        # --- USUÃRIO LOGADO (ASSINANTE), dÃ¡ uma olhada aqui de novo ---
-        with st.sidebar:
-             st.write(f'Bem-vindo *{st.session_state["name"]}*!')
-             authenticator.logout() # Mostra o botÃ£o de logout na sidebar
+            user_login = st.session_state["username"]
+            user_email = config['credentials']['usernames'][user_login]['email']
+            user_id = get_user_id_by_email(user_email)
+            
+            if user_id:
+                pagina_chat(user_id)
+            else:
+                st.error("Erro: Usuário de teste não sincronizado com o banco. Contate o suporte.")
 
-        # A biblioteca salva o login (ex: 'jsmith') em st.session_state["username"]
-        user_login = st.session_state["username"]
-        user_email = config['credentials']['usernames'][user_login]['email']
-        user_id = get_user_id_by_email(user_email)
+        elif st.session_state["authentication_status"] is False:
+            st.error('Usuário ou senha incorretos')
+
+    elif choice == "Registrar":
+        st.subheader("Crie sua Conta")
         
-        if user_id:
-            pagina_chat(user_id) # Inicia o chat com o ID do usuÃ¡rio correto
+        with st.form("registration_form"):
+            new_email = st.text_input("Email*")
+            new_name = st.text_input("Nome*")
+            new_password = st.text_input("Senha*", type="password")
+            confirm_password = st.text_input("Confirme a Senha*", type="password")
 
-        # Tem necessidade desse else aqui? Tem como o usuÃ¡rio logar sem ele estar na base de dados?
-        else:
-            st.error("Erro: Usuário autenticado não encontrado em nosso banco de dados. Contate o suporte.")
+            submitted = st.form_submit_button("Registrar")
 
-    elif st.session_state["authentication_status"] is False:
-        st.error('Usuário ou senha incorretos.')
+            if submitted:
+                if not new_email or not new_name or not new_password:
+                    st.error("Por favor, preencha todos os campos obrigatórios.")
+                elif new_password != confirm_password:
+                    st.error("As senhas não coincidem.")
+                else:
+                    user_created = create_user_in_db(new_email, new_name, new_password)
+                    if user_created:
+                        st.success("Usuário criado com sucesso! Por favor, volte para a tela de Login.")
+                        st.balloons()
+                    else:
+                        st.error("Este email já está cadastrado.")
 
-    elif st.session_state["authentication_status"] is None:
-        # --- Caso de ser visitante ---
-        st.info("🧠 ‹ Bem-vindo ao DerivaAI! Faça o login para acessar seu histórico de conversas.")
-        st.warning("No momento, a funcionalidade para visitantes está em desenvolvimento. Por favor, utilize uma das contas de teste para acessar.")
-        # Futuramente, aqui entrarÃ¡ a lÃ³gica do chat limitado para visitantes.
+# --- NOVA FUNÇÃO PARA CRIAR USUÁRIOS NO BANCO DE DADOS ---
+def create_user_in_db(email, name, plain_password):
+    """Cria um novo usuário no banco, com senha hasheada."""
+    conn = st.connection("postgres", type="sql")
+    
+    existing_user = conn.query('SELECT user_id FROM usuarios WHERE email = :email;', params={"email": email})
+    if not existing_user.empty:
+        return False
 
+    hashed_password = stauth.Hasher().hash(plain_password)
+    
+    with conn.session as s:
+        s.execute(
+            text('INSERT INTO usuarios (email, name, password_hash, account_type) VALUES (:email, :name, :password, :type);'),
+            params=dict(email=email, name=name, password=hashed_password, type='assinante')
+        )
+        s.commit()
+    return True
 
 # --- ObtÃ©m o ID do usuÃ¡rio a partir do email, utilizado para autenticaÃ§Ã£o. --- #
 def get_user_id_by_email(email: str):
