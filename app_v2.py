@@ -6,49 +6,54 @@ from langchain.memory import ConversationSummaryBufferMemory
 from langchain.prompts import ChatPromptTemplate
 from sqlalchemy.sql import text
 
+# --- NOVAS FUNÇÕES AUXILIARES ---
+def get_user_from_db(email: str):
+    """Busca um usuário completo no banco de dados pelo email."""
+    conn = st.connection("postgres", type="sql")
+    query = 'SELECT user_id, name, password_hash FROM usuarios WHERE TRIM(LOWER(email)) = LOWER(:email);'
+    result = conn.query(query, params={"email": email})
+    if not result.empty:
+        return result.iloc[0] # Retorna a linha inteira como um objeto
+    return None
+
+# --- NOVA E DEFINITIVA FUNÇÃO main() ---
 def main():
     load_css()
 
-    # --- ESCOLHA ENTRE LOGIN E REGISTRO ---
     choice = st.selectbox("Escolha uma opção:", ["Login", "Registrar"])
-    
-    config = st.secrets
 
     if choice == "Login":
-        authenticator = stauth.Authenticate(
-            config['credentials'].to_dict(),
-            config['cookie']['name'],
-            config['cookie']['key'],
-            config['cookie']['expiry_days']
-        )
-        authenticator.login()
+        st.subheader("Faça seu Login")
 
-        if st.session_state["authentication_status"]:
-            with st.sidebar:
-                 st.write(f'Bem-vindo *{st.session_state["name"]}*!')
-                 authenticator.logout()
+        with st.form("login_form"):
+            email = st.text_input("Email")
+            password = st.text_input("Senha", type="password")
+            login_submitted = st.form_submit_button("Login")
 
-            user_login = st.session_state["username"]
-            user_email = config['credentials']['usernames'][user_login]['email']
-            user_id = get_user_id_by_email(user_email)
-            
-            if user_id:
-                pagina_chat(user_id)
-            else:
-                st.error("Erro: Usuário de teste não sincronizado com o banco. Contate o suporte.")
+            if login_submitted:
+                user_data = get_user_from_db(email)
 
-        elif st.session_state["authentication_status"] is False:
-            st.error('Usuário ou senha incorretos')
-
+                if user_data is not None:
+                    # Verifica se a senha fornecida corresponde ao hash no banco
+                    if stauth.Hasher().verify(password, user_data['password_hash']):
+                        # Se a senha estiver correta, define o estado da sessão
+                        st.session_state["authentication_status"] = True
+                        st.session_state["name"] = user_data['name']
+                        st.session_state["user_id"] = user_data['user_id']
+                        st.rerun() # Reinicia o script para refletir o estado de login
+                    else:
+                        st.error("Usuário ou senha incorretos.")
+                else:
+                    st.error("Usuário ou senha incorretos.")
+    
     elif choice == "Registrar":
         st.subheader("Crie sua Conta")
-        
+        # (O código do formulário de registro que você já tem continua aqui, sem alterações)
         with st.form("registration_form"):
             new_email = st.text_input("Email*")
             new_name = st.text_input("Nome*")
             new_password = st.text_input("Senha*", type="password")
             confirm_password = st.text_input("Confirme a Senha*", type="password")
-
             submitted = st.form_submit_button("Registrar")
 
             if submitted:
@@ -64,6 +69,18 @@ def main():
                     else:
                         st.error("Este email já está cadastrado.")
 
+    # --- LÓGICA DE CONTROLE DE ACESSO (AGORA MAIS SIMPLES) ---
+    if st.session_state.get("authentication_status"):
+        with st.sidebar:
+             st.write(f'Bem-vindo *{st.session_state["name"]}*!')
+             # Botão de logout manual
+             if st.button("Logout"):
+                 st.session_state["authentication_status"] = None
+                 st.session_state["name"] = None
+                 st.session_state["user_id"] = None
+                 st.rerun()
+        
+        pagina_chat(st.session_state["user_id"])
 # --- NOVA FUNÇÃO PARA CRIAR USUÁRIOS NO BANCO DE DADOS ---
 def create_user_in_db(email, name, plain_password):
     """Cria um novo usuário no banco, com senha hasheada."""
