@@ -7,6 +7,7 @@ from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.prompts import ChatPromptTemplate
 from sqlalchemy.sql import text
+import bcrypt
 
 # ======================================================================
 # 2. SEÇÃO DE CONFIGURAÇÃO E INICIALIZAÇÃO (OpenAI, LLM, etc.)
@@ -67,7 +68,7 @@ def create_user_in_db(email, name, plain_password):
     if not existing_user.empty:
         return False
 
-    hashed_password = stauth.Hasher().hash(plain_password)
+    hashed_password = stauth.Hasher(plain_password).generate()[0]
     
     with conn.session as s:
         s.execute(
@@ -151,7 +152,7 @@ def main():
     if "authentication_status" not in st.session_state:
         st.session_state["authentication_status"] = None
 
-    if st.session_state["authentication_status"]:
+    if st.session_state.get("authentication_status"):
         with st.sidebar:
              st.write(f'Bem-vindo *{st.session_state["name"]}*!')
              if st.button("Logout"):
@@ -173,17 +174,9 @@ def main():
 
                 if login_submitted:
                     user_data = get_user_from_db(email)
-
                     if user_data is not None:
-                        # --- INÍCIO DA DEPURAÇÃO FINAL ---
-                        st.write("--- INSPECIONANDO DADOS ANTES DA VERIFICAÇÃO ---")
-                        st.write(f"Senha digitada (tipo: {type(password)}): '{password}'")
-                        st.write(f"Hash do banco (tipo: {type(user_data['password_hash'])}): '{user_data['password_hash']}'")
-                        st.write("--- FIM DA DEPURAÇÃO ---")
-                        # --- FIM DA DEPURAÇÃO ---
-
-                        # Verifica se a senha fornecida corresponde ao hash no banco
-                        if password and stauth.Hasher().verify(password, user_data['password_hash']):
+                        # Usando bcrypt.checkpw para verificar a senha
+                        if bcrypt.checkpw(password.encode(), user_data['password_hash'].encode()):
                             st.session_state["authentication_status"] = True
                             st.session_state["name"] = user_data['name']
                             st.session_state["user_id"] = int(user_data['user_id'])
