@@ -173,11 +173,23 @@ def main():
 
                 if login_submitted:
                     user_data = get_user_from_db(email)
-                    if user_data is not None and stauth.Hasher().verify(password, user_data['password_hash']):
-                        st.session_state["authentication_status"] = True
-                        st.session_state["name"] = user_data['name']
-                        st.session_state["user_id"] = int(user_data['user_id'])
-                        st.rerun()
+
+                    if user_data is not None:
+                        # --- INÍCIO DA DEPURAÇÃO FINAL ---
+                        st.write("--- INSPECIONANDO DADOS ANTES DA VERIFICAÇÃO ---")
+                        st.write(f"Senha digitada (tipo: {type(password)}): '{password}'")
+                        st.write(f"Hash do banco (tipo: {type(user_data['password_hash'])}): '{user_data['password_hash']}'")
+                        st.write("--- FIM DA DEPURAÇÃO ---")
+                        # --- FIM DA DEPURAÇÃO ---
+
+                        # Verifica se a senha fornecida corresponde ao hash no banco
+                        if password and stauth.Hasher().verify(password, user_data['password_hash']):
+                            st.session_state["authentication_status"] = True
+                            st.session_state["name"] = user_data['name']
+                            st.session_state["user_id"] = int(user_data['user_id'])
+                            st.rerun()
+                        else:
+                            st.error("Usuário ou senha incorretos.")
                     else:
                         st.error("Usuário ou senha incorretos.")
         
