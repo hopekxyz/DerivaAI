@@ -68,7 +68,7 @@ def create_user_in_db(email, name, plain_password):
     if not existing_user.empty:
         return False
 
-    hashed_password = stauth.Hasher(plain_password).generate()[0]
+    hashed_password = stauth.Hasher().hash(plain_password)
     
     with conn.session as s:
         s.execute(
