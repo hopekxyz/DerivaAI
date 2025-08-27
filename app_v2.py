@@ -151,7 +151,7 @@ def main():
     # --- INÍCIO DO AVISO DE FASE BETA ---
     st.info(
         """
-        🧪 **Você está participando da fase de testes (Beta) do DerivaAI!** Nesta fase, sua experiência e feedback são essenciais para nos ajudar a construir a melhor 
+        **Você está participando da fase de testes (Beta) do DerivaAI!** Nesta fase, sua experiência e feedback são essenciais para nos ajudar a construir a melhor 
         ferramenta de aprendizado possível. Se encontrar qualquer problema ou tiver sugestões, entre em contato no Instagram @deriva.ai .
         """, 
         icon="🧪"
