@@ -148,6 +148,15 @@ def pagina_chat(user_id):
 # ======================================================================
 def main():
     load_css()
+    # --- INÍCIO DO AVISO DE FASE BETA ---
+    st.info(
+        """
+        🧪 **Você está participando da fase de testes (Beta) do DerivaAI!** Nesta fase, sua experiência e feedback são essenciais para nos ajudar a construir a melhor 
+        ferramenta de aprendizado possível. Se encontrar qualquer problema ou tiver sugestões, entre em contato no Instagram @deriva.ai .
+        """, 
+        icon="🧪"
+    )
+    # --- FIM DO AVISO ---
 
     if "authentication_status" not in st.session_state:
         st.session_state["authentication_status"] = None
